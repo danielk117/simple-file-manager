@@ -1,14 +1,14 @@
 <?php
 /*
-simple-file-manager based on PHP
-
-Copyright:
-jcampbell1 - initial project (github.com/jcampbell1/simple-file-manager)
-diego95root - file edit feature (github.com/diego95root/File-manager-php)
-danielk117 - recent version with file editing (github.com/danielk117/simple-file-manager)
-
-Liscense: MIT
-*/
+ * simple-file-manager based on PHP
+ *
+ * Copyright:
+ * - jcampbell1 -> initial project (github.com/jcampbell1/simple-file-manager)
+ * - diego95root -> file edit feature (github.com/diego95root/File-manager-php)
+ * - danielk117 -> recent version with file editing (github.com/danielk117/simple-file-manager)
+ *
+ * Liscense: MIT
+ */
 
 // disable error report for undefined superglobals
 error_reporting( error_reporting() & ~E_NOTICE );
