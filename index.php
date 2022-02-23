@@ -1,28 +1,28 @@
 <?php
-/********************************
-Simple PHP File Manager
-Copyright John Campbell (jcampbell1), diego95root, danielk117
+/*
+simple-file-manager based on PHP
+
+Copyright:
+jcampbell1 - initial project (github.com/jcampbell1/simple-file-manager)
+diego95root - file edit feature (github.com/diego95root/File-manager-php)
+danielk117 - recent version with file editing (github.com/danielk117/simple-file-manager)
 
 Liscense: MIT
-********************************/
+*/
 
-//Disable error report for undefined superglobals
+// disable error report for undefined superglobals
 error_reporting( error_reporting() & ~E_NOTICE );
 
-// settings
-
-$base_dir = ''; // set base directory, something like '/.git'
-
-$allow_delete = true; // Set to false to disable delete button and delete POST request.
-$allow_upload = true; // Set to true to allow upload files
-$allow_create_folder = true; // Set to false to disable folder creation
-$allow_direct_link = true; // Set to false to only allow downloads and not direct link
-$allow_show_folders = true; // Set to false to hide all subdirectories
-
-$disallowed_patterns = ['*.php'];  // must be an array.  Matching files not allowed to be uploaded
-$hidden_patterns = ['*.php','.*']; // Matching files hidden in directory index
-
-$PASSWORD = '';  // Set the password, to access the file manager... (optional)
+// default settings (edit only in config.php)
+$base_dir = '';
+$allow_delete = true;
+$allow_upload = true;
+$allow_create_folder = true;
+$allow_direct_link = true;
+$allow_show_folders = true;
+$disallowed_patterns = ['*.php'];
+$hidden_patterns = ['*.php','.*'];
+$PASSWORD = '';
 
 include_once __DIR__ . '/config.php';
 
@@ -659,6 +659,5 @@ function disappear(){
 		</div>
 	</div>
 </div>
-<footer>simple php filemanager by <a href="https://github.com/jcampbell1">jcampbell1 modified by <a href="https://github.com/diego95root">diego95root</a></footer>
 </body>
 </html>
