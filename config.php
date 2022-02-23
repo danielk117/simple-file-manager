@@ -1,6 +1,7 @@
 <?php
-
-// the config file and the settings are optional
+/*
+ * the follwong settings and config file itself are all optional
+ */
 
 $base_dir = ''; // set base directory, something like '/.git'
 
