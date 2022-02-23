@@ -13,4 +13,6 @@ $allow_show_folders = true; // set to false to hide all subdirectories
 $disallowed_patterns = ['*.php'];  // matching files not allowed to be uploaded
 $hidden_patterns = ['*.php','.*']; // matching files hidden in directory index
 
+$jquery_url = '//code.jquery.com/jquery-3.6.0.min.js'; // set your own jquery url, to prevent external dependency
+
 $PASSWORD = '';  // set the password, to access the file manager...
