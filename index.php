@@ -1,7 +1,7 @@
 <?php
 /********************************
 Simple PHP File Manager
-Copyright John Campbell (jcampbell1)
+Copyright John Campbell (jcampbell1), diego95root, danielk117
 
 Liscense: MIT
 ********************************/
@@ -23,6 +23,8 @@ $disallowed_patterns = ['*.php'];  // must be an array.  Matching files not allo
 $hidden_patterns = ['*.php','.*']; // Matching files hidden in directory index
 
 $PASSWORD = '';  // Set the password, to access the file manager... (optional)
+
+include_once __DIR__ . '/config.php';
 
 if ($base_dir!=='') chdir(getcwd().$base_dir);
 
