@@ -23,6 +23,7 @@ $allow_direct_link = true;
 $allow_show_folders = true;
 $disallowed_patterns = ['*.php'];
 $hidden_patterns = ['*.php','.*'];
+$datetime_format = 'Y-m-d H:i:s';
 $jquery_url = '//code.jquery.com/jquery-3.6.0.min.js';
 $PASSWORD = '';
 
@@ -94,6 +95,7 @@ if($_GET['do'] == 'list') {
 			$stat = stat($i);
 			$result[] = [
 				'mtime' => $stat['mtime'],
+				'ftime' => date($datetime_format, $stat['mtime']),
 				'size' => $stat['size'],
 				'name' => basename($i),
 				'path' => preg_replace('@^\./@', '', $i),
@@ -103,7 +105,9 @@ if($_GET['do'] == 'list') {
 				'is_readable' => is_readable($i),
 				'is_writable' => is_writable($i),
 				'is_executable' => is_executable($i),
+				'owner' => posix_getpwuid(fileowner($i))['name'] .':'. posix_getgrgid(filegroup($i))['name']
 			];
+
 		}
 		usort($result,function($f1,$f2){
 			$f1_key = ($f1['is_dir']?:2) . $f1['name'];
@@ -125,7 +129,7 @@ if($_GET['do'] == 'list') {
 	$dir = $_POST['name'];
 	$dir = str_replace('/', '', $dir);
 	if(substr($dir, 0, 2) === '..')
-	    exit;
+		exit;
 	chdir($file);
 	@mkdir($_POST['name']);
 	exit;
@@ -136,17 +140,28 @@ if($_GET['do'] == 'list') {
 
 	$res = move_uploaded_file($_FILES['file_data']['tmp_name'], $file.'/'.$_FILES['file_data']['name']);
 	exit;
-} elseif ($_GET['do'] == 'download') {
-	foreach($disallowed_patterns as $pattern)
+} elseif ($_GET['do'] == 'view' || $_GET['do'] == 'download') {
+	foreach($hidden_patterns as $pattern)
 		if(fnmatch($pattern, $file))
 			err(403,"Files of this type are not allowed.");
 
 	$filename = basename($file);
 	$finfo = finfo_open(FILEINFO_MIME_TYPE);
-	header('Content-Type: ' . finfo_file($finfo, $file));
-	header('Content-Length: '. filesize($file));
-	header(sprintf('Content-Disposition: attachment; filename=%s',
-		strpos('MSIE',$_SERVER['HTTP_REFERER']) ? rawurlencode($filename) : "\"$filename\"" ));
+	$type = finfo_file($finfo, $file);
+	if ($_GET['do'] == 'download') {
+		header('Content-Type: ' . $type);
+		header('Content-Length: '. filesize($file));
+		header(sprintf('Content-Disposition: attachment; filename=%s',
+			strpos('MSIE',$_SERVER['HTTP_REFERER']) ? rawurlencode($filename) : "\"$filename\"" ));
+	}
+	else {
+		if (in_array($type, ['image/jpeg','image/png','application/pdf'])) {
+			header('Content-Type: ' . $type);
+		}
+		else {
+			header('Content-Type: text/plain');
+		}
+	}
 	ob_flush();
 	readfile($file);
 	exit;
@@ -193,19 +208,19 @@ function is_recursively_deleteable($d) {
 
 // from: http://php.net/manual/en/function.realpath.php#84012
 function get_absolute_path($path) {
-        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-        $parts = explode(DIRECTORY_SEPARATOR, $path);
-        $absolutes = [];
-        foreach ($parts as $part) {
-            if ('.' == $part) continue;
-            if ('..' == $part) {
-                array_pop($absolutes);
-            } else {
-                $absolutes[] = $part;
-            }
-        }
-        return implode(DIRECTORY_SEPARATOR, $absolutes);
-    }
+		$path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+		$parts = explode(DIRECTORY_SEPARATOR, $path);
+		$absolutes = [];
+		foreach ($parts as $part) {
+			if ('.' == $part) continue;
+			if ('..' == $part) {
+				array_pop($absolutes);
+			} else {
+				$absolutes[] = $part;
+			}
+		}
+		return implode(DIRECTORY_SEPARATOR, $absolutes);
+	}
 
 function err($code,$msg) {
 	http_response_code($code);
@@ -276,7 +291,6 @@ a.delete {display:inline-block;
 	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB2klEQVR4nJ2ST2sTQRiHn5mdmj92t9XmUJIWJGq9NHrRgxQiCtqbl97FqxgaL34CP0FD8Qv07EHEU0Ew6EXEk6ci8Q9JtcXEkHR3k+zujIdUqMkmiANzmJdnHn7vzCuIWbe291tSkvhz1pr+q1L2bBwrRgvFrcZKKinfP9zI2EoKmm7Azstf3V7fXK2Wc3ujvIqzAhglwRJoS2ImQZMEBjgyoDS4hv8QGHA1WICvp9yelsA7ITBTIkwWhGBZ0Iv+MUF+c/cB8PTHt08snb+AGAACZDj8qIN6bSe/uWsBb2qV24/GBLn8yl0plY9AJ9NKeL5ICyEIQkkiZenF5XwBDAZzWItLIIR6LGfk26VVxzltJ2gFw2a0FmQLZ+bcbo/DPbcd+PrDyRb+GqRipbGlZtX92UvzjmUpEGC0JgpC3M9dL+qGz16XsvcmCgCK2/vPtTNzJ1x2kkZIRBSivh8Z2Q4+VkvZy6O8HHvWyGyITvA1qndNpxfguQNkc2CIzM0xNk5QLedCEZm1VKsf2XrAXMNrA2vVcq4ZJ4DhvCSAeSALXASuLBTW129U6oPrT969AK4Bq0AeWARs4BRgieMUEkgDmeO9ANipzDnH//nFB0KgAxwATaAFeID5DQNatLGdaXOWAAAAAElFTkSuQmCC) no-repeat scroll 0px 5px;
 	padding:4px 0 4px 20px;
 }
-
 .edit {
 	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAAAXNSR0IArs4c6QAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAsTAAALEwEAmpwYAAABWWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgIDwvcmRmOkRlc2NyaXB0aW9uPgogICA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgpMwidZAAAB30lEQVQoFXWSzUuUURTGf/d1nCHFD0YCwcW4EaGFgivbCC0URXKnCLqpCJEg8B+QCRftKnIjobjwk+xv0JYt2oiimxYhuRJKU0dtxrk99857p9HqwH3vee85z3nOF/xH7HuqnMmu0GPX+aqzbVfp9W8W427/cUqlWBmNwdosSbr4SIL7nMqjmu/8YtCM8skFjypBZf1FHLSNbi7Z4yeHAsI1aVnSwS8RlHC7iGaEaztPRozv5PxNbK+J6MdywT6b3neY4l9ghuXipI4n3KFdwHbdHQJ/UNKzJsulyolUVvFG2p5Vj3aJTsGfiQedHLXcpUijecq+A5ItEdwAO0IvSabUqrRY87prOFfNZ7z0tntqpobg9HLadouEeUDBLtOnIY161kgVJ+WVY9E8Yif0wwcJ4Hg0BftK1aV4LkhKnb0SZ0rsu9LeekDoR4wupb2hOpw0i7GGQQrSqxTCbYHhjXnMUeiHcwsSeVY3mkUaVUkLx8zIeECDEs5rLD9Y88578RQCUndEWIgkrWI5NGNMCzTACZ+VwZyZIOf7kVW/b0m5YYrbJPOX2J7R/5wCbYR+3ML53z9gt3ZuBksMyZKhnoV/ASrfIjQ3/2B9mya1w3kzrk16qHRLm1TauEpUrP8Gm5GUcUxRg/cAAAAASUVORK5CYII=) no-repeat scroll 0px 5px;
 	padding:4px 20px 4px 20px;
@@ -288,61 +302,48 @@ a.delete {display:inline-block;
 	height: 500px;
 	background-color: rgb(240,240,240);
 	resize: none;
-	-webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-  border-radius: 2px;
+	border-radius: 8px;
 	border: 2px solid rgb(125,125,125);
 	outline:none;
-	font-family: "lucida grande","Segoe UI",Arial, sans-serif; font-size: 14px;
+	font-family: monospace;
 	padding: 10px;
 }
-
 .control {
-	border: 1px solid rgb(125,125,125);
-	-webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-  border-radius: 2px;
+	border: 2px solid rgb(125,125,125);
+	border-radius: 8px;
 	background-color: rgb(240,240,240);
-	font-family: "lucida grande","Segoe UI",Arial, sans-serif; font-size: 12px;
-	-webkit-transition: .25s; /* Safari */
-  transition: .25s;
+	transition: .25s;
+	padding: 2px 5px;
 }
-
 .control:hover {
 	cursor: pointer;
 	background-color: rgb(200,200,200);
-	-webkit-transition: .25s; /* Safari */
-  transition: .25s;
+	transition: .25s;
 }
-
 #overlay-back {
-    position   : absolute;
-    top        : 0;
-    left       : 0;
-    width      : 100%;
-    height     : 100%;
-    background : #000;
-    opacity    : 0;
-    filter     : alpha(opacity=60);
-    z-index    : 5;
-		-webkit-transition: .3s; /* Safari */
-	  transition: .3s;
-		visibility: hidden;
-}
-
-#whole {
-	opacity: 0;
-	-webkit-transition: .3s; /* Safari */
+	position   : absolute;
+	top        : 0;
+	left       : 0;
+	width      : 100%;
+	height     : 100%;
+	background : #000;
+	opacity    : 0;
+	filter     : alpha(opacity=60);
+	z-index    : 5;
 	transition: .3s;
 	visibility: hidden;
 }
-
+#whole {
+	opacity: 0;
+	transition: .3s;
+	visibility: hidden;
+}
 #saved {
 	position   : absolute;
 	background : #aaa;
 	opacity    : 0;
 	filter     : alpha(opacity=60);
-	-webkit-transition: .3s; /* Safari */
+	transition: .3s;
 	transition: .3s;
 	visibility: hidden;
 	z-index  : 14;
@@ -355,7 +356,6 @@ a.delete {display:inline-block;
 	border: 1.5px solid #777;
 	font-family: "lucida grande","Segoe UI",Arial, sans-serif; font-size: 28px;
 }
-
 </style>
 <script src="<?= $jquery_url ?>"></script>
 <script>
@@ -470,14 +470,14 @@ $(function(){
 		xhr.open('POST', '?');
 		xhr.onload = function() {
 			$row.remove();
-    		list();
-  		};
+			list();
+		};
 		xhr.upload.onprogress = function(e){
 			if(e.lengthComputable) {
 				$row.find('.progress').css('width',(e.loaded/e.total*100 | 0)+'%' );
 			}
 		};
-	    xhr.send(fd);
+		xhr.send(fd);
 	}
 	function renderFileUploadRow(file,folder) {
 		return $row = $('<div/>')
@@ -511,7 +511,7 @@ $(function(){
 	}
 	function renderFileRow(data) {
 		var $link = $('<a class="name" />')
-			.attr('href', data.is_dir ? '#' + encodeURIComponent(data.path) : '<?= $base_dir ?>/'+ encodeURIComponent(data.path))
+			.attr('href', data.is_dir ? '#' + encodeURIComponent(data.path) : '?do=view&file='+ encodeURIComponent(data.path))
 			.text(data.name);
 		var allow_direct_link = <?= $allow_direct_link?'true':'false'; ?>;
 		if (!data.is_dir && !allow_direct_link) $link.css('pointer-events','none');
@@ -521,7 +521,6 @@ $(function(){
 			.addClass('edit').text('edit');
 		var $delete_link = $('<a href="#" />').attr('data-file',data.path).addClass('delete').text('delete');
 		var perms = [];
-		perms.push('<?= get_current_user() ?>');
 		if(data.is_readable) perms.push('read');
 		if(data.is_writable) perms.push('write');
 		if(data.is_executable) perms.push('exec');
@@ -530,30 +529,24 @@ $(function(){
 			.append( $('<td class="first" />').append($link) )
 			.append( $('<td/>').attr('data-sort',data.is_dir ? -1 : data.size)
 				.html($('<span class="size" />').text(formatFileSize(data.size))) )
-			.append( $('<td/>').attr('data-sort',data.mtime).text(formatTimestamp(data.mtime)) )
-			.append( $('<td/>').text(perms.slice(0,1) + ": " + perms.slice(1).join('+')) )
-			.append( $('<td/>').append($edit_link).append($dl_link).append( data.is_deleteable ? $delete_link : '') )
+			.append( $('<td/>').attr('data-sort',data.mtime).text(data.ftime) )
+			.append( $('<td/>').text(data.owner) )
+			.append( $('<td/>').text(perms.join('+')) )
+			.append( $('<td/>').append(data.is_writable ? $edit_link : '').append($dl_link).append(data.is_deleteable ? $delete_link : '') )
 		return $html;
 	}
 	function renderBreadcrumbs(path) {
 		var base = "",
-			$html = $('<div/>').append( $('<a href=#>Home</a></div>') );
+			$html = $('<div/>').append( $('<a href=#>root</a></div>') );
 		$.each(path.split('%2F'),function(k,v){
 			if(v) {
 				var v_as_text = decodeURIComponent(v);
-				$html.append( $('<span/>').text(' ▸ ') )
+				$html.append( $('<span/>').text(' / ') )
 					.append( $('<a/>').attr('href','#'+base+v).text(v_as_text) );
 				base += v + '%2F';
 			}
 		});
 		return $html;
-	}
-	function formatTimestamp(unix_timestamp) {
-		var m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-		var d = new Date(unix_timestamp*1000);
-		return [m[d.getMonth()],' ',d.getDate(),', ',d.getFullYear()," ",
-			(d.getHours() % 12 || 12),":",(d.getMinutes() < 10 ? '0' : '')+d.getMinutes(),
-			" ",d.getHours() >= 12 ? 'PM' : 'AM'].join('');
 	}
 	function formatFileSize(bytes) {
 		var s = ['bytes', 'KB','MB','GB','TB','PB','EB'];
@@ -564,14 +557,6 @@ $(function(){
 })
 function edit_file(path){
 	window.cwfile = path;
-	/* HANDLE REQUESTS WIHTOUT POST
-	$.ajax({
-    url:path,
-    success: function (data){
-      document.getElementById('textarea').value = data;
-    }
-  });
-	*/
 	$.ajax({
 			 type: "POST",
 			 url: '<?= basename(__FILE__) ?>',
@@ -588,10 +573,10 @@ function edit_file(path){
 function ajaxSave() {
 	 var data = document.getElementById('textarea').value;
 	 $.ajax({
-        type: "POST",
-        url: '<?= basename(__FILE__) ?>',
-        data: {textarea: data, file: window.cwfile}
-    });
+		type: "POST",
+		url: '<?= basename(__FILE__) ?>',
+		data: {textarea: data, file: window.cwfile}
+	});
 		document.getElementById("saved").style.visibility = "visible";
 		document.getElementById("saved").style.opacity = "1";
 		setTimeout(function(){
@@ -647,6 +632,7 @@ function disappear(){
 	<th>Name</th>
 	<th>Size</th>
 	<th>Modified</th>
+	<th>Owner</th>
 	<th>Permissions</th>
 	<th>Actions</th>
 </tr></thead><tbody id="list">
