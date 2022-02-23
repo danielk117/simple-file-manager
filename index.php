@@ -1,14 +1,14 @@
 <?php
 /*
-simple-file-manager based on PHP
-
-Copyright:
-jcampbell1 - initial project (github.com/jcampbell1/simple-file-manager)
-diego95root - file edit feature (github.com/diego95root/File-manager-php)
-danielk117 - recent version with file editing (github.com/danielk117/simple-file-manager)
-
-Liscense: MIT
-*/
+ * simple-file-manager based on PHP
+ *
+ * Copyright:
+ * - jcampbell1 -> initial project (github.com/jcampbell1/simple-file-manager)
+ * - diego95root -> file edit feature (github.com/diego95root/File-manager-php)
+ * - danielk117 -> recent version with file editing (github.com/danielk117/simple-file-manager)
+ *
+ * Liscense: MIT
+ */
 
 // disable error report for undefined superglobals
 error_reporting( error_reporting() & ~E_NOTICE );
@@ -19,9 +19,11 @@ $allow_delete = true;
 $allow_upload = true;
 $allow_create_folder = true;
 $allow_direct_link = true;
+$allow_direct_link = true;
 $allow_show_folders = true;
 $disallowed_patterns = ['*.php'];
 $hidden_patterns = ['*.php','.*'];
+$jquery_url = '//code.jquery.com/jquery-3.6.0.min.js';
 $PASSWORD = '';
 
 include_once __DIR__ . '/config.php';
@@ -355,7 +357,7 @@ a.delete {display:inline-block;
 }
 
 </style>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="<?= $jquery_url ?>"></script>
 <script>
 (function($){
 	$.fn.tablesorter = function() {
@@ -401,7 +403,7 @@ a.delete {display:inline-block;
 })(jQuery);
 $(function(){
 	var XSRF = (document.cookie.match('(^|; )_sfm_xsrf=([^;]*)')||0)[2];
-	var MAX_UPLOAD_SIZE = <?php echo $MAX_UPLOAD_SIZE ?>;
+	var MAX_UPLOAD_SIZE = <?= $MAX_UPLOAD_SIZE ?>;
 	var $tbody = $('#list');
 	$(window).on('hashchange',list).trigger('hashchange');
 	$('#table').tablesorter();
@@ -509,17 +511,17 @@ $(function(){
 	}
 	function renderFileRow(data) {
 		var $link = $('<a class="name" />')
-			.attr('href', data.is_dir ? '#' + encodeURIComponent(data.path) : '<?php echo $base_dir?>/'+ encodeURIComponent(data.path))
+			.attr('href', data.is_dir ? '#' + encodeURIComponent(data.path) : '<?= $base_dir ?>/'+ encodeURIComponent(data.path))
 			.text(data.name);
-		var allow_direct_link = <?php echo $allow_direct_link?'true':'false'; ?>;
-        	if (!data.is_dir && !allow_direct_link)  $link.css('pointer-events','none');
+		var allow_direct_link = <?= $allow_direct_link?'true':'false'; ?>;
+		if (!data.is_dir && !allow_direct_link) $link.css('pointer-events','none');
 		var $dl_link = $('<a/>').attr('href','?do=download&file='+ encodeURIComponent(data.path))
 			.addClass('download').text('download');
 		var $edit_link = $('<a/>').attr('href','javascript:edit_file(\''+ encodeURIComponent(data.path)+'\'); try {document.getElementById("mceu_28-body").remove()} catch(err){}')
 			.addClass('edit').text('edit');
 		var $delete_link = $('<a href="#" />').attr('data-file',data.path).addClass('delete').text('delete');
 		var perms = [];
-		perms.push('<?php echo get_current_user() ?>');
+		perms.push('<?= get_current_user() ?>');
 		if(data.is_readable) perms.push('read');
 		if(data.is_writable) perms.push('write');
 		if(data.is_executable) perms.push('exec');
@@ -572,7 +574,7 @@ function edit_file(path){
 	*/
 	$.ajax({
 			 type: "POST",
-			 url: '<?php echo basename(__FILE__) ?>',
+			 url: '<?= basename(__FILE__) ?>',
 			 data: {loc:path},
 			 success: function (data2){
 				 document.getElementById('textarea').value = data2;
@@ -587,7 +589,7 @@ function ajaxSave() {
 	 var data = document.getElementById('textarea').value;
 	 $.ajax({
         type: "POST",
-        url: '<?php echo basename(__FILE__) ?>',
+        url: '<?= basename(__FILE__) ?>',
         data: {textarea: data, file: window.cwfile}
     });
 		document.getElementById("saved").style.visibility = "visible";
