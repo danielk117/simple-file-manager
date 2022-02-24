@@ -15,8 +15,7 @@ The code is a single php file. Just copy `index.php` to a folder on your webserv
 - The interface is usable from an iPad
 - XSRF protection, and an optional password.
 
-## Do not allow uploads on the public web
-
+## Security notes
 If you allow uploads on the public web, it is only a matter of time before your server is hosting and serving very illegal content. Any of the following options will prevent this:
  - Don't make the folder writable by the webserver `chmod 775`
  - Set `$allow_upload = false`
@@ -27,3 +26,7 @@ If you allow uploads on the public web, it is only a matter of time before your 
 ## Screenshot
 
 ![Screenshot](https://raw.github.com/jcampbell1/simple-file-manager/master/screenshot.png "Screenshot")
+
+## Credits
+
+- Icons: https://www.svgrepo.com/ 
