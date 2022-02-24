@@ -1,6 +1,6 @@
 <?php
 /*
- * simple-file-manager based on PHP
+ * simple-file-manager
  *
  * Copyright:
  * - jcampbell1 -> initial project (github.com/jcampbell1/simple-file-manager)
@@ -18,7 +18,6 @@ $base_dir = '';
 $allow_delete = true;
 $allow_upload = true;
 $allow_create_folder = true;
-$allow_direct_link = true;
 $allow_direct_link = true;
 $allow_show_folders = true;
 $disallowed_patterns = ['*.php'];
@@ -512,7 +511,7 @@ $(function(){
 	function renderFileRow(data) {
 		var $link = $('<a class="name" />')
 			.attr('href', data.is_dir ? '#' + encodeURIComponent(data.path) : '?do=view&file='+ encodeURIComponent(data.path))
-			.text(data.name);
+			.attr('target', '_blank').text(data.name);
 		var allow_direct_link = <?= $allow_direct_link?'true':'false'; ?>;
 		if (!data.is_dir && !allow_direct_link) $link.css('pointer-events','none');
 		var $dl_link = $('<a/>').attr('href','?do=download&file='+ encodeURIComponent(data.path))
