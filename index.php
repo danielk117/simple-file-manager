@@ -36,6 +36,7 @@ if ($PASSWORD)
     session_start();
     if (!$_SESSION['_sfm_allowed'])
     {
+        session_regenerate_id();
         // sha1, and random bytes to thwart timing attacks.  Not meant as secure hashing.
         $t = bin2hex(random_bytes(10));
         if ($_POST['p'] && sha1($t . $_POST['p']) === sha1($t . $PASSWORD))
@@ -102,7 +103,7 @@ if ($_GET['action'] == 'list')
             if (!is_entry_ignored($entry, $allow_show_folders, $hidden_patterns))
             {
                 $i = $directory . '/' . $entry;
-                $stat = stat($i);
+                $stat = @stat($i);
                 $result[] = [
                     'mtime'         => $stat['mtime'],
                     'ftime'         => date($datetime_format, $stat['mtime']),
@@ -117,7 +118,7 @@ if ($_GET['action'] == 'list')
                     'is_readable'   => is_readable($i),
                     'is_writable'   => is_writable($i),
                     'is_executable' => is_executable($i),
-                    'owner'         => posix_getpwuid(fileowner($i))['name'] . ':' . posix_getgrgid(filegroup($i))['name'],
+                    'owner'         => @posix_getpwuid(fileowner($i))['name'] . ':' . @posix_getgrgid(filegroup($i))['name'],
                 ];
 
             }
