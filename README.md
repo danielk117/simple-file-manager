@@ -29,7 +29,7 @@ If you allow uploads on the public web, it is only a matter of time before your 
 
 ## Screenshot
 
-![Screenshot](https://raw.github.com/jcampbell1/simple-file-manager/master/screenshot.png "Screenshot")
+![Screenshot](https://raw.github.com/danielk117/simple-file-manager/master/screenshot.png "Screenshot")
 
 ## Credits
 
